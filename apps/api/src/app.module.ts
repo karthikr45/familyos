@@ -21,6 +21,12 @@ import { AiModule } from './modules/ai/ai.module';
 import { ExamsModule } from './modules/exams/exams.module';
 import { HealthModule } from './modules/health/health.module';
 import { FinanceModule } from './modules/finance/finance.module';
+import { TalentsModule } from './modules/talents/talents.module';
+import { TuitionsModule } from './modules/tuitions/tuitions.module';
+import { FamilyModule } from './modules/family/family.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { QueueModule } from './queues/queue.module';
 
 @Module({
   imports: [
@@ -39,7 +45,9 @@ import { FinanceModule } from './modules/finance/finance.module';
     PrismaModule,
     RedisModule,
     StorageModule,
+    QueueModule,
     AiModule,
+    NotificationsModule,
     AuthModule,
     UsersModule,
     StudentsModule,
@@ -47,6 +55,10 @@ import { FinanceModule } from './modules/finance/finance.module';
     ExamsModule,
     HealthModule,
     FinanceModule,
+    TalentsModule,
+    TuitionsModule,
+    FamilyModule,
+    ReportsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
