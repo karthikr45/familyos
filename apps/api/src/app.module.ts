@@ -17,6 +17,10 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { StudentsModule } from './modules/students/students.module';
 import { ParentsModule } from './modules/parents/parents.module';
+import { AiModule } from './modules/ai/ai.module';
+import { ExamsModule } from './modules/exams/exams.module';
+import { HealthModule } from './modules/health/health.module';
+import { FinanceModule } from './modules/finance/finance.module';
 
 @Module({
   imports: [
@@ -35,10 +39,14 @@ import { ParentsModule } from './modules/parents/parents.module';
     PrismaModule,
     RedisModule,
     StorageModule,
+    AiModule,
     AuthModule,
     UsersModule,
     StudentsModule,
     ParentsModule,
+    ExamsModule,
+    HealthModule,
+    FinanceModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
