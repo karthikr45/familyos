@@ -1,0 +1,979 @@
+// FamilyOS — Prisma schema
+// Family Learning and Life Operating System for Indian families.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = []
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  STUDENT
+  PARENT
+  ADMIN
+}
+
+enum FamilyRole {
+  PARENT
+  CHILD
+}
+
+enum BoardType {
+  CBSE
+  ICSE
+  STATE
+}
+
+enum QuestionType {
+  MCQ
+  SHORT
+  LONG
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum ContentSource {
+  AI
+  MANUAL
+}
+
+enum ChallengeStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  COMPLETED
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+enum LoggedByRole {
+  STUDENT
+  PARENT
+}
+
+enum SleepQuality {
+  POOR
+  FAIR
+  GOOD
+  EXCELLENT
+}
+
+enum MoodLevel {
+  VERY_SAD
+  SAD
+  NEUTRAL
+  HAPPY
+  VERY_HAPPY
+}
+
+enum StressSessionType {
+  BREATHING
+  JOURNAL
+  BRAIN_BREAK
+  MEDITATION
+}
+
+enum TalentType {
+  SPORTS
+  ARTS
+  MUSIC
+  CODING
+  ACADEMIC
+  OTHER
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  OVERDUE
+}
+
+enum CalendarEventType {
+  EXAM
+  VACATION
+  OUTING
+  DINNER
+  ACTIVITY
+  OTHER
+}
+
+enum VacationStatus {
+  PLANNED
+  BOOKED
+  COMPLETED
+}
+
+enum DinnerType {
+  HOME
+  RESTAURANT
+}
+
+enum AiMessageRole {
+  USER
+  ASSISTANT
+}
+
+// ============================================================================
+// AUTHENTICATION & USERS
+// ============================================================================
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  phone        String?  @unique
+  passwordHash String?
+  role         UserRole @default(STUDENT)
+  isVerified   Boolean  @default(false)
+  isDeleted    Boolean  @default(false)
+  avatarUrl    String?
+  name         String?
+  pushToken    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  refreshTokens           RefreshToken[]
+  studentProfile          StudentProfile?
+  familyMemberships       FamilyMember[]
+  createdExams            Exam[]                  @relation("ExamCreator")
+  parentMoodLogs          ParentMoodLog[]
+  parentJournalEntries    ParentJournalEntry[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
+  aiUsages                AiUsage[]
+
+  @@index([role])
+  @@index([phone])
+  @@index([email])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model OtpVerification {
+  id        String   @id @default(cuid())
+  phone     String
+  otp       String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  consumed  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([expiresAt])
+}
+
+// ============================================================================
+// FAMILY STRUCTURE
+// ============================================================================
+
+model Family {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members         FamilyMember[]
+  students        StudentProfile[]
+  expenses        Expense[]
+  budgets         Budget[]
+  calendarEvents  FamilyCalendarEvent[]
+  vacationPlans   VacationPlan[]
+  outingPlans     OutingPlan[]
+  dinnerPlans     DinnerPlan[]
+  activities      FamilyActivity[]
+  photos          FamilyPhoto[]
+  weeklyReports   WeeklyReport[]
+}
+
+model FamilyMember {
+  id        String     @id @default(cuid())
+  familyId  String
+  userId    String
+  role      FamilyRole
+  createdAt DateTime   @default(now())
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, userId])
+  @@index([familyId])
+  @@index([userId])
+}
+
+// ============================================================================
+// STUDENT ACADEMIC
+// ============================================================================
+
+model StudentProfile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  familyId    String
+  name        String
+  dateOfBirth DateTime?
+  class       Int
+  board       BoardType
+  state       String?
+  school      String?
+  avatarUrl   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  studySessions       StudySession[]
+  studyGoals          StudyGoal[]
+  weakAreas           WeakArea[]
+  examAttempts        ExamAttempt[]
+  challengesSent      PeerChallenge[]  @relation("Challenger")
+  challengesReceived  PeerChallenge[]  @relation("Challenged")
+  foodLogs            FoodLog[]
+  activityLogs        ActivityLog[]
+  sleepLogs           SleepLog[]
+  moodLogs            MoodLog[]
+  stressReliefSessions StressReliefSession[]
+  talents             StudentTalent[]
+  tuitions            Tuition[]
+  expenses            Expense[]
+  pocketMoney         PocketMoney[]
+  weeklyReports       WeeklyReport[]
+  aiConversations     AiConversation[]
+
+  @@index([familyId])
+  @@index([class, board])
+}
+
+model Board {
+  id    String    @id @default(cuid())
+  name  String
+  code  String    @unique
+  state String?
+
+  subjects Subject[]
+}
+
+model Subject {
+  id      String @id @default(cuid())
+  boardId String
+  class   Int
+  name    String
+  code    String
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  chapters      Chapter[]
+  studySessions StudySession[]
+  weakAreas     WeakArea[]
+  questions     Question[]
+  exams         Exam[]
+  tuitions      Tuition[]
+
+  @@unique([boardId, class, code])
+  @@index([boardId, class])
+}
+
+model Chapter {
+  id          String  @id @default(cuid())
+  subjectId   String
+  name        String
+  number      Int
+  description String?
+  isCompleted Boolean @default(false)
+
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  studySessions StudySession[]
+  weakAreas     WeakArea[]
+  questions     Question[]
+
+  @@unique([subjectId, number])
+  @@index([subjectId])
+}
+
+model StudySession {
+  id              String   @id @default(cuid())
+  studentId       String
+  subjectId       String
+  chapterId       String?
+  durationMinutes Int
+  date            DateTime
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  chapter Chapter?       @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, date])
+  @@index([subjectId])
+}
+
+model StudyGoal {
+  id                  String   @id @default(cuid())
+  studentId           String
+  targetMinutesPerDay Int
+  createdAt           DateTime @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+}
+
+model WeakArea {
+  id             String   @id @default(cuid())
+  studentId      String
+  subjectId      String
+  chapterId      String?
+  score          Float
+  lastDetectedAt DateTime @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  chapter Chapter?       @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, subjectId, chapterId])
+  @@index([studentId])
+}
+
+// ============================================================================
+// MOCK EXAMS & ASSESSMENTS
+// ============================================================================
+
+model Question {
+  id            String        @id @default(cuid())
+  subjectId     String
+  chapterId     String?
+  text          String
+  type          QuestionType
+  difficulty    Difficulty
+  options       Json?
+  correctAnswer String?
+  explanation   String?
+  createdBy     ContentSource @default(MANUAL)
+  createdAt     DateTime      @default(now())
+
+  subject       Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  chapter       Chapter?       @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  examQuestions ExamQuestion[]
+  examAnswers   ExamAnswer[]
+
+  @@index([subjectId, chapterId])
+  @@index([difficulty])
+}
+
+model Exam {
+  id            String   @id @default(cuid())
+  title         String
+  creatorId     String
+  subjectId     String
+  isPublic      Boolean  @default(false)
+  isAiGenerated Boolean  @default(false)
+  timeLimit     Int?
+  totalMarks    Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  creator   User    @relation("ExamCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  questions  ExamQuestion[]
+  attempts   ExamAttempt[]
+  challenges PeerChallenge[]
+
+  @@index([creatorId])
+  @@index([subjectId])
+  @@index([isPublic])
+}
+
+model ExamQuestion {
+  id         String @id @default(cuid())
+  examId     String
+  questionId String
+  marks      Int    @default(1)
+  order      Int
+
+  exam     Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, questionId])
+  @@index([examId, order])
+}
+
+model ExamAttempt {
+  id          String    @id @default(cuid())
+  examId      String
+  studentId   String
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  score       Float     @default(0)
+  totalMarks  Int       @default(0)
+  timeTaken   Int?
+
+  exam    Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers ExamAnswer[]
+
+  @@index([examId])
+  @@index([studentId, startedAt])
+}
+
+model ExamAnswer {
+  id             String  @id @default(cuid())
+  attemptId      String
+  questionId     String
+  selectedAnswer String?
+  isCorrect      Boolean @default(false)
+  marksAwarded   Float   @default(0)
+
+  attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+}
+
+model PeerChallenge {
+  id           String          @id @default(cuid())
+  examId       String
+  challengerId String
+  challengedId String
+  status       ChallengeStatus @default(PENDING)
+  createdAt    DateTime        @default(now())
+
+  exam       Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  challenger StudentProfile @relation("Challenger", fields: [challengerId], references: [id], onDelete: Cascade)
+  challenged StudentProfile @relation("Challenged", fields: [challengedId], references: [id], onDelete: Cascade)
+
+  @@index([challengerId])
+  @@index([challengedId])
+  @@index([status])
+}
+
+// ============================================================================
+// HEALTH & WELLNESS
+// ============================================================================
+
+model FoodLog {
+  id         String       @id @default(cuid())
+  studentId  String
+  date       DateTime
+  mealType   MealType
+  items      Json
+  calories   Int?
+  isJunkFood Boolean      @default(false)
+  photoUrl   String?
+  loggedBy   LoggedByRole @default(STUDENT)
+  createdAt  DateTime     @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, date])
+}
+
+model ActivityLog {
+  id              String   @id @default(cuid())
+  studentId       String
+  date            DateTime
+  activityType    String
+  durationMinutes Int
+  calories        Int?
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, date])
+}
+
+model SleepLog {
+  id         String       @id @default(cuid())
+  studentId  String
+  date       DateTime
+  bedTime    DateTime?
+  wakeTime   DateTime?
+  hoursSlept Float
+  quality    SleepQuality @default(FAIR)
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date])
+  @@index([studentId, date])
+}
+
+model MoodLog {
+  id        String    @id @default(cuid())
+  studentId String
+  date      DateTime
+  mood      MoodLevel
+  notes     String?
+  isPrivate Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, date])
+}
+
+model StressReliefSession {
+  id              String            @id @default(cuid())
+  studentId       String
+  sessionType     StressSessionType
+  durationMinutes Int
+  completedAt     DateTime          @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, completedAt])
+}
+
+// ============================================================================
+// PARENT WELLNESS
+// ============================================================================
+
+model ParentMoodLog {
+  id        String    @id @default(cuid())
+  parentId  String
+  date      DateTime
+  mood      MoodLevel
+  notes     String?
+  isPrivate Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  parent User @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@index([parentId, date])
+}
+
+model ParentJournalEntry {
+  id        String   @id @default(cuid())
+  parentId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  parent User @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@index([parentId, createdAt])
+}
+
+// ============================================================================
+// TALENT & EXTRACURRICULAR
+// ============================================================================
+
+model TalentCategory {
+  id   String     @id @default(cuid())
+  name String
+  type TalentType
+
+  studentTalents StudentTalent[]
+}
+
+model StudentTalent {
+  id               String   @id @default(cuid())
+  studentId        String
+  talentCategoryId String
+  name             String
+  coach            String?
+  venue            String?
+  startedAt        DateTime?
+  createdAt        DateTime @default(now())
+
+  student  StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  category TalentCategory @relation(fields: [talentCategoryId], references: [id], onDelete: Restrict)
+
+  sessions     TalentSession[]
+  achievements TalentAchievement[]
+
+  @@index([studentId])
+  @@index([talentCategoryId])
+}
+
+model TalentSession {
+  id              String   @id @default(cuid())
+  studentTalentId String
+  date            DateTime
+  durationMinutes Int
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  studentTalent StudentTalent @relation(fields: [studentTalentId], references: [id], onDelete: Cascade)
+
+  @@index([studentTalentId, date])
+}
+
+model TalentAchievement {
+  id              String   @id @default(cuid())
+  studentTalentId String
+  title           String
+  description     String?
+  date            DateTime
+  certificateUrl  String?
+  createdAt       DateTime @default(now())
+
+  studentTalent StudentTalent @relation(fields: [studentTalentId], references: [id], onDelete: Cascade)
+
+  @@index([studentTalentId])
+}
+
+// ============================================================================
+// TUITION MANAGEMENT
+// ============================================================================
+
+model Tuition {
+  id           String    @id @default(cuid())
+  studentId    String
+  subjectId    String?
+  tutorName    String
+  tutorPhone   String?
+  venue        String?
+  feesPerMonth Float
+  schedule     Json?
+  startedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject?       @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+
+  attendance TuitionAttendance[]
+  payments   TuitionPayment[]
+
+  @@index([studentId])
+}
+
+model TuitionAttendance {
+  id        String           @id @default(cuid())
+  tuitionId String
+  date      DateTime
+  status    AttendanceStatus
+  notes     String?
+
+  tuition Tuition @relation(fields: [tuitionId], references: [id], onDelete: Cascade)
+
+  @@unique([tuitionId, date])
+  @@index([tuitionId, date])
+}
+
+model TuitionPayment {
+  id        String        @id @default(cuid())
+  tuitionId String
+  amount    Float
+  paidAt    DateTime?
+  dueDate   DateTime
+  status    PaymentStatus @default(PENDING)
+
+  tuition Tuition @relation(fields: [tuitionId], references: [id], onDelete: Cascade)
+
+  @@index([tuitionId])
+  @@index([status, dueDate])
+}
+
+// ============================================================================
+// FINANCE
+// ============================================================================
+
+model ExpenseCategory {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  icon     String?
+  isSystem Boolean @default(false)
+
+  expenses Expense[]
+  budgets  Budget[]
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  familyId    String
+  studentId   String?
+  categoryId  String
+  amount      Float
+  description String?
+  date        DateTime
+  isJunkFood  Boolean  @default(false)
+  receiptUrl  String?
+  loggedById  String?
+  createdAt   DateTime @default(now())
+
+  family   Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  student  StudentProfile? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  category ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([familyId, date])
+  @@index([studentId])
+  @@index([categoryId])
+}
+
+model Budget {
+  id           String @id @default(cuid())
+  familyId     String
+  categoryId   String
+  monthlyLimit Float
+  month        Int
+  year         Int
+
+  family   Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  category ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, categoryId, month, year])
+  @@index([familyId, year, month])
+}
+
+model PocketMoney {
+  id         String   @id @default(cuid())
+  studentId  String
+  amount     Float
+  givenAt    DateTime @default(now())
+  givenById  String?
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  spends  PocketMoneySpend[]
+
+  @@index([studentId, givenAt])
+}
+
+model PocketMoneySpend {
+  id            String   @id @default(cuid())
+  pocketMoneyId String
+  amount        Float
+  description   String?
+  spentAt       DateTime @default(now())
+
+  pocketMoney PocketMoney @relation(fields: [pocketMoneyId], references: [id], onDelete: Cascade)
+
+  @@index([pocketMoneyId])
+}
+
+// ============================================================================
+// FAMILY LIFE
+// ============================================================================
+
+model FamilyCalendarEvent {
+  id          String            @id @default(cuid())
+  familyId    String
+  title       String
+  description String?
+  type        CalendarEventType @default(OTHER)
+  startDate   DateTime
+  endDate     DateTime?
+  allDay      Boolean           @default(false)
+  createdById String?
+  createdAt   DateTime          @default(now())
+
+  family Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  photos FamilyPhoto[]
+
+  @@index([familyId, startDate])
+  @@index([type])
+}
+
+model VacationPlan {
+  id          String         @id @default(cuid())
+  familyId    String
+  destination String
+  startDate   DateTime
+  endDate     DateTime
+  budget      Float?
+  itinerary   Json?
+  status      VacationStatus @default(PLANNED)
+  createdAt   DateTime       @default(now())
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId, startDate])
+}
+
+model OutingPlan {
+  id              String   @id @default(cuid())
+  familyId        String
+  destination     String
+  date            DateTime
+  budget          Float?
+  educationalTags Json?
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId, date])
+}
+
+model DinnerPlan {
+  id             String     @id @default(cuid())
+  familyId       String
+  date           DateTime
+  type           DinnerType @default(HOME)
+  mealPlan       Json?
+  restaurantName String?
+  estimatedCost  Float?
+  createdAt      DateTime   @default(now())
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId, date])
+}
+
+model FamilyActivity {
+  id              String   @id @default(cuid())
+  familyId        String
+  activityType    String
+  date            DateTime
+  durationMinutes Int?
+  notes           String?
+  participantIds  Json?
+  createdAt       DateTime @default(now())
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@index([familyId, date])
+}
+
+model FamilyPhoto {
+  id           String   @id @default(cuid())
+  familyId     String
+  eventId      String?
+  url          String
+  caption      String?
+  takenAt      DateTime?
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  family Family               @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  event  FamilyCalendarEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  @@index([familyId, createdAt])
+  @@index([eventId])
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean   @default(false)
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+model NotificationPreference {
+  id        String  @id @default(cuid())
+  userId    String
+  type      String
+  enabled   Boolean @default(true)
+  timeOfDay String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId])
+}
+
+// ============================================================================
+// WEEKLY REPORTS
+// ============================================================================
+
+model WeeklyReport {
+  id           String   @id @default(cuid())
+  familyId     String
+  studentId    String?
+  weekStart    DateTime
+  weekEnd      DateTime
+  academicData Json?
+  healthData   Json?
+  financeData  Json?
+  talentData   Json?
+  narrative    String?
+  generatedAt  DateTime @default(now())
+
+  family  Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  student StudentProfile? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, studentId, weekStart])
+  @@index([familyId, weekStart])
+}
+
+// ============================================================================
+// AI INTERACTIONS
+// ============================================================================
+
+model AiConversation {
+  id        String   @id @default(cuid())
+  studentId String
+  subject   String?
+  context   Json?
+  createdAt DateTime @default(now())
+
+  student  StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  messages AiMessage[]
+
+  @@index([studentId, createdAt])
+}
+
+model AiMessage {
+  id             String        @id @default(cuid())
+  conversationId String
+  role           AiMessageRole
+  content        String
+  createdAt      DateTime      @default(now())
+
+  conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+model AiUsage {
+  id           String   @id @default(cuid())
+  userId       String
+  feature      String
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([feature])
+}
