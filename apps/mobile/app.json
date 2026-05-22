@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "FamilyOS",
+    "slug": "familyos",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "familyos",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#4f46e5"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.familyos.app"
+    },
+    "android": {
+      "package": "com.familyos.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#4f46e5"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        { "cameraPermission": "FamilyOS uses the camera to log meals by photo." }
+      ],
+      [
+        "expo-notifications",
+        { "color": "#4f46e5" }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
