@@ -4,6 +4,7 @@ import type { Queue } from 'bullmq';
 import type { Prisma } from '@familyos/database';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PushService } from './push.service';
+import { AppGateway } from '../../gateways/app.gateway';
 import { JOBS, QUEUES, type DigestJob, type SendPushJob } from '../../queues/queue.constants';
 import type { UpdatePreferenceDto } from './dto/notification.dto';
 
@@ -12,6 +13,7 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly push: PushService,
+    private readonly gateway: AppGateway,
     @InjectQueue(QUEUES.NOTIFICATION) private readonly notificationQueue: Queue,
     @InjectQueue(QUEUES.DIGEST) private readonly digestQueue: Queue,
     @InjectQueue(QUEUES.ALERT) private readonly alertQueue: Queue,
@@ -93,6 +95,7 @@ export class NotificationsService {
       select: { pushToken: true },
     });
     await this.push.send(user?.pushToken ?? null, title, body, { ...data, type });
+    this.gateway.emitToUser(userId, 'notification:new', notification);
 
     return notification;
   }

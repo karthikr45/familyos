@@ -7,6 +7,7 @@ import {
 import type { BoardType } from '@familyos/shared';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AiService } from '../ai/ai.service';
+import { AppGateway } from '../../gateways/app.gateway';
 import type {
   AiGenerateExamDto,
   CreateChallengeDto,
@@ -21,6 +22,7 @@ export class ExamsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly ai: AiService,
+    private readonly gateway: AppGateway,
   ) {}
 
   async create(creatorId: string, dto: CreateExamDto) {
@@ -325,7 +327,7 @@ export class ExamsService {
   async createChallenge(examId: string, dto: CreateChallengeDto) {
     const exam = await this.prisma.exam.findUnique({ where: { id: examId } });
     if (!exam) throw new NotFoundException('Exam not found');
-    return this.prisma.peerChallenge.create({
+    const challenge = await this.prisma.peerChallenge.create({
       data: {
         examId,
         challengerId: dto.challengerStudentId,
@@ -333,6 +335,19 @@ export class ExamsService {
         status: 'PENDING',
       },
     });
+
+    const challenged = await this.prisma.studentProfile.findUnique({
+      where: { id: dto.challengedStudentId },
+      select: { userId: true },
+    });
+    if (challenged) {
+      this.gateway.emitToUser(challenged.userId, 'exam:challenge-received', {
+        challengeId: challenge.id,
+        examId,
+        examTitle: exam.title,
+      });
+    }
+    return challenge;
   }
 
   async getChallenges(studentId: string) {
