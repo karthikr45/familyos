@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/.expo
+**/coverage
+.git
+.github
+*.log
+**/*.tsbuildinfo
+apps/mobile/ios
+apps/mobile/android

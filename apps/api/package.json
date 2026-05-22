@@ -10,8 +10,8 @@
     "dev:worker": "nest start --watch --entryFile main-worker",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "type-check": "tsc --noEmit -p tsconfig.json",
-    "test": "jest",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test": "jest --passWithNoTests",
+    "test:e2e": "jest --config ./test/jest-e2e.json --runInBand --forceExit",
     "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {

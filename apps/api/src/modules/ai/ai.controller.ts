@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
@@ -57,6 +59,7 @@ export class AiController {
   }
 
   @Post('tutor/ask')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(FamilyGuard)
   @ApiOperation({ summary: 'Ask the AI tutor a question (streaming SSE response)' })
   async askTutor(
