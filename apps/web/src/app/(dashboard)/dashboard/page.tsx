@@ -5,6 +5,7 @@ import { AlertTriangle, CalendarDays, TrendingUp, Wallet } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { WeatherCard } from '@/components/dashboard/weather-card';
 import { useParentDashboard, useActiveFamilyId } from '@/hooks/useFamily';
 import { useCurrentUser } from '@/hooks/useAuth';
 import { formatCurrency, formatDate, MOOD_TYPES } from '@familyos/shared';
@@ -104,6 +105,10 @@ export default function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <WeatherCard />
       </div>
 
       <Card>

@@ -495,3 +495,48 @@ export interface AiConversationDto {
   createdAt: ISODateString;
   messages?: AiMessageDto[];
 }
+
+// ---------------------------------------------------------------------------
+// Weather (weatherapi.com)
+// ---------------------------------------------------------------------------
+
+export interface WeatherLocationDto {
+  name: string;
+  region: string;
+  country: string;
+  localtime: ISODateString;
+}
+
+export interface WeatherConditionDto {
+  text: string;
+  icon: string;
+  code: number;
+}
+
+export interface CurrentWeatherDto {
+  location: WeatherLocationDto;
+  tempC: number;
+  feelsLikeC: number;
+  condition: WeatherConditionDto;
+  humidity: number;
+  windKph: number;
+  precipMm: number;
+  uv: number;
+  isDay: boolean;
+  lastUpdated: ISODateString;
+}
+
+export interface ForecastDayDto {
+  date: ISODateString;
+  maxTempC: number;
+  minTempC: number;
+  avgTempC: number;
+  condition: WeatherConditionDto;
+  chanceOfRain: number;
+}
+
+export interface WeatherForecastDto {
+  location: WeatherLocationDto;
+  current: CurrentWeatherDto;
+  forecast: ForecastDayDto[];
+}

@@ -19,6 +19,9 @@ export interface AppConfig {
   anthropic: {
     apiKey: string;
   };
+  weather: {
+    apiKey: string;
+  };
   aws: {
     bucket: string;
     accessKeyId: string;
@@ -59,6 +62,9 @@ export default (): AppConfig => ({
   },
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY ?? '',
+  },
+  weather: {
+    apiKey: process.env.WEATHER_API_KEY ?? '',
   },
   aws: {
     bucket: process.env.AWS_S3_BUCKET ?? '',

@@ -24,6 +24,7 @@ import { FinanceModule } from './modules/finance/finance.module';
 import { TalentsModule } from './modules/talents/talents.module';
 import { TuitionsModule } from './modules/tuitions/tuitions.module';
 import { FamilyModule } from './modules/family/family.module';
+import { WeatherModule } from './modules/weather/weather.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { QueueModule } from './queues/queue.module';
@@ -58,6 +59,7 @@ import { QueueModule } from './queues/queue.module';
     TalentsModule,
     TuitionsModule,
     FamilyModule,
+    WeatherModule,
     ReportsModule,
   ],
   providers: [

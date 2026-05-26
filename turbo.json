@@ -6,6 +6,7 @@
     "DATABASE_URL",
     "DIRECT_URL",
     "ANTHROPIC_API_KEY",
+    "WEATHER_API_KEY",
     "JWT_SECRET",
     "JWT_REFRESH_SECRET",
     "REDIS_URL",

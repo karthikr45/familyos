@@ -20,6 +20,7 @@ export const validationSchema = Joi.object({
 
   REDIS_URL: Joi.string().required(),
   ANTHROPIC_API_KEY: Joi.string().required(),
+  WEATHER_API_KEY: Joi.string().allow('').optional(),
 
   AWS_S3_BUCKET: Joi.string().allow('').optional(),
   AWS_ACCESS_KEY_ID: Joi.string().allow('').optional(),

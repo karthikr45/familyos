@@ -1,9 +1,4 @@
-import type {
-  BoardType,
-  MealType,
-  MoodLevel,
-  TalentType,
-} from '../types';
+import type { BoardType, MealType, MoodLevel, TalentType } from '../types';
 
 // ---------------------------------------------------------------------------
 // Boards & classes
@@ -15,10 +10,10 @@ export const BOARDS: Record<BoardType, { label: string; description: string }> =
   STATE: { label: 'State Board', description: 'State Education Board' },
 };
 
-export const CLASSES: { value: number; label: string }[] = Array.from(
-  { length: 12 },
-  (_, i) => ({ value: i + 1, label: `Class ${i + 1}` }),
-);
+export const CLASSES: { value: number; label: string }[] = Array.from({ length: 12 }, (_, i) => ({
+  value: i + 1,
+  label: `Class ${i + 1}`,
+}));
 
 // ---------------------------------------------------------------------------
 // Health
@@ -204,6 +199,10 @@ export const API_ROUTES = {
   notifications: {
     base: '/notifications',
     preferences: '/notifications/preferences',
+  },
+  weather: {
+    current: '/weather/current',
+    forecast: '/weather/forecast',
   },
 } as const;
 
