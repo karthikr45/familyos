@@ -203,6 +203,16 @@ export const API_ROUTES = {
   weather: {
     current: '/weather/current',
     forecast: '/weather/forecast',
+    overview: '/weather/overview',
+    astronomy: '/weather/astronomy',
+    alerts: '/weather/alerts',
+    marine: '/weather/marine',
+    history: '/weather/history',
+    future: '/weather/future',
+    sports: '/weather/sports',
+    timezone: '/weather/timezone',
+    search: '/weather/search',
+    ip: '/weather/ip',
   },
 } as const;
 
@@ -227,6 +237,7 @@ export const APP_ROUTES = {
   dinners: '/family/dinners',
   photos: '/family/photos',
   wellness: '/wellness',
+  weather: '/weather',
   notifications: '/notifications',
   settings: '/settings',
 } as const;

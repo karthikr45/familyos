@@ -505,12 +505,37 @@ export interface WeatherLocationDto {
   region: string;
   country: string;
   localtime: ISODateString;
+  lat?: number;
+  lon?: number;
+  tzId?: string;
 }
 
 export interface WeatherConditionDto {
   text: string;
   icon: string;
   code: number;
+}
+
+export interface AstroDto {
+  sunrise: string;
+  sunset: string;
+  moonrise: string;
+  moonset: string;
+  moonPhase: string;
+  moonIllumination: number;
+  isSunUp?: boolean;
+  isMoonUp?: boolean;
+}
+
+export interface HourlyWeatherDto {
+  time: ISODateString;
+  tempC: number;
+  feelsLikeC: number;
+  condition: WeatherConditionDto;
+  chanceOfRain: number;
+  windKph: number;
+  humidity: number;
+  isDay: boolean;
 }
 
 export interface CurrentWeatherDto {
@@ -520,8 +545,13 @@ export interface CurrentWeatherDto {
   condition: WeatherConditionDto;
   humidity: number;
   windKph: number;
+  windDir: string;
   precipMm: number;
+  pressureMb: number;
+  visKm: number;
+  cloud: number;
   uv: number;
+  gustKph: number;
   isDay: boolean;
   lastUpdated: ISODateString;
 }
@@ -533,10 +563,113 @@ export interface ForecastDayDto {
   avgTempC: number;
   condition: WeatherConditionDto;
   chanceOfRain: number;
+  maxWindKph: number;
+  totalPrecipMm: number;
+  avgHumidity: number;
+  uv: number;
+  astro?: AstroDto;
+  hours?: HourlyWeatherDto[];
+}
+
+export interface WeatherAlertDto {
+  headline: string;
+  severity: string;
+  urgency: string;
+  event: string;
+  areas: string;
+  effective: ISODateString;
+  expires: ISODateString;
+  description: string;
+  instruction: string;
 }
 
 export interface WeatherForecastDto {
   location: WeatherLocationDto;
   current: CurrentWeatherDto;
   forecast: ForecastDayDto[];
+  alerts: WeatherAlertDto[];
+}
+
+export interface AstronomyDto {
+  location: WeatherLocationDto;
+  astro: AstroDto;
+}
+
+export interface TideDto {
+  time: ISODateString;
+  heightMt: number;
+  type: string;
+}
+
+export interface MarineHourDto {
+  time: ISODateString;
+  sigHeightMt: number;
+  swellHeightMt: number;
+  swellPeriodSecs: number;
+  waterTempC: number;
+  windKph: number;
+}
+
+export interface MarineDayDto {
+  date: ISODateString;
+  maxTempC: number;
+  minTempC: number;
+  condition: WeatherConditionDto;
+  tides: TideDto[];
+  hours: MarineHourDto[];
+}
+
+export interface MarineForecastDto {
+  location: WeatherLocationDto;
+  days: MarineDayDto[];
+}
+
+export interface LocationSearchResultDto {
+  id: number;
+  name: string;
+  region: string;
+  country: string;
+  lat: number;
+  lon: number;
+}
+
+export interface SportsEventDto {
+  stadium: string;
+  country: string;
+  region: string;
+  tournament: string;
+  start: ISODateString;
+  match: string;
+}
+
+export interface SportsDto {
+  football: SportsEventDto[];
+  cricket: SportsEventDto[];
+  golf: SportsEventDto[];
+}
+
+export interface TimezoneDto {
+  name: string;
+  region: string;
+  country: string;
+  tzId: string;
+  localtime: ISODateString;
+}
+
+export interface IpLookupDto {
+  ip: string;
+  city: string;
+  region: string;
+  country: string;
+  lat: number;
+  lon: number;
+  tzId: string;
+}
+
+export interface WeatherOverviewDto {
+  location: WeatherLocationDto;
+  current: CurrentWeatherDto;
+  forecast: ForecastDayDto[];
+  alerts: WeatherAlertDto[];
+  sports: SportsDto;
 }

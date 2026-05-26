@@ -2,7 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { CalendarDays, HeartPulse, LayoutDashboard, Settings, Users, Wallet } from 'lucide-react';
+import {
+  CalendarDays,
+  CloudSun,
+  HeartPulse,
+  LayoutDashboard,
+  Settings,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import { cn } from '@familyos/ui';
 
 const NAV = [
@@ -10,6 +18,7 @@ const NAV = [
   { href: '/children', label: 'Children', icon: Users },
   { href: '/finance', label: 'Finance', icon: Wallet },
   { href: '/family', label: 'Family', icon: CalendarDays },
+  { href: '/weather', label: 'Weather', icon: CloudSun },
   { href: '/wellness', label: 'Wellness', icon: HeartPulse },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
