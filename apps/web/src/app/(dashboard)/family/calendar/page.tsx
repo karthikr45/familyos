@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCalendar, useCreateEvent, useActiveFamilyId } from '@/hooks/useFamily';
+import { PlannerWeather } from '@/components/weather/planner-weather';
 import { eventColors } from '@familyos/ui';
 import { formatDate } from '@familyos/shared';
 
@@ -22,6 +23,8 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Family Calendar</h1>
+
+      <PlannerWeather />
 
       <Card>
         <CardHeader>

@@ -8,6 +8,7 @@ const QUICK_ACTIONS = [
   { label: 'Log Food', emoji: '🍱', href: '/health/food-log' as const },
   { label: 'Check Mood', emoji: '😊', href: '/health/mood-check' as const },
   { label: 'Stress Relief', emoji: '🧘', href: '/health/stress-relief' as const },
+  { label: 'Weather', emoji: '⛅', href: '/weather' as const },
 ];
 
 export default function Home() {

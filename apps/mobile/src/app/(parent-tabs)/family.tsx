@@ -1,5 +1,6 @@
-import { ScrollView, View, Text } from 'react-native';
+import { ScrollView, View, Text, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { Screen, Card, Heading, Muted } from '../../components/shared/ui';
 import { api, unwrap } from '../../lib/api';
 import { useFamilies } from '../../hooks/useParent';
@@ -13,6 +14,7 @@ interface CalendarEvent {
 }
 
 export default function ParentFamily() {
+  const router = useRouter();
   const { data: families } = useFamilies();
   const familyId = families?.[0]?.id;
 
@@ -26,6 +28,17 @@ export default function ParentFamily() {
     <Screen>
       <ScrollView contentContainerStyle={{ padding: 20, gap: 14 }}>
         <Heading>Family</Heading>
+
+        <Pressable onPress={() => router.push('/weather')}>
+          <Card className="flex-row items-center justify-between">
+            <View>
+              <Text className="font-semibold text-gray-900">⛅ Weather &amp; planning</Text>
+              <Muted>Forecast and the best days for outings</Muted>
+            </View>
+            <Text className="text-primary">›</Text>
+          </Card>
+        </Pressable>
+
         <Card>
           <Text className="font-semibold text-gray-900">Upcoming events</Text>
           {(events ?? []).map((e) => (
