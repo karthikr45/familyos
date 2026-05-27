@@ -1,6 +1,21 @@
-import { PrismaClient, BoardType, QuestionType, Difficulty, TalentType } from '@prisma/client';
+import {
+  PrismaClient,
+  BoardType,
+  QuestionType,
+  Difficulty,
+  TalentType,
+  Prisma,
+} from '@prisma/client';
+import { randomBytes, scryptSync } from 'crypto';
 
 const prisma = new PrismaClient();
+
+/** Mirrors the API's scrypt password format (`salt:hash`) so demo logins work. */
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const derived = scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${derived}`;
+}
 
 const BOARDS = [
   { name: 'Central Board of Secondary Education', code: 'CBSE', state: null },
@@ -191,11 +206,127 @@ async function seedCategories() {
   }
 }
 
+const DEMO_PARENT_EMAIL = 'demo@familyos.app';
+const DEMO_STUDENT_EMAIL = 'aarav@familyos.app';
+const DEMO_PASSWORD = 'Demo@12345';
+
+/** Seeds a ready-to-use demo family with sample data so dashboards aren't empty. */
+async function seedDemo() {
+  const parent = await prisma.user.upsert({
+    where: { email: DEMO_PARENT_EMAIL },
+    update: { isVerified: true },
+    create: {
+      email: DEMO_PARENT_EMAIL,
+      passwordHash: hashPassword(DEMO_PASSWORD),
+      name: 'Asha Sharma',
+      role: 'PARENT',
+      isVerified: true,
+    },
+  });
+
+  let family = await prisma.family.findFirst({
+    where: { name: 'The Sharma Family', members: { some: { userId: parent.id } } },
+  });
+  if (!family) {
+    family = await prisma.family.create({ data: { name: 'The Sharma Family' } });
+    await prisma.familyMember.create({
+      data: { familyId: family.id, userId: parent.id, role: 'PARENT' },
+    });
+  }
+
+  const childUser = await prisma.user.upsert({
+    where: { email: DEMO_STUDENT_EMAIL },
+    update: { isVerified: true },
+    create: {
+      email: DEMO_STUDENT_EMAIL,
+      passwordHash: hashPassword(DEMO_PASSWORD),
+      name: 'Aarav Sharma',
+      role: 'STUDENT',
+      isVerified: true,
+    },
+  });
+  await prisma.familyMember.upsert({
+    where: { familyId_userId: { familyId: family.id, userId: childUser.id } },
+    update: {},
+    create: { familyId: family.id, userId: childUser.id, role: 'CHILD' },
+  });
+
+  let student = await prisma.studentProfile.findUnique({ where: { userId: childUser.id } });
+  if (!student) {
+    student = await prisma.studentProfile.create({
+      data: {
+        userId: childUser.id,
+        familyId: family.id,
+        name: 'Aarav Sharma',
+        class: 8,
+        board: 'CBSE',
+        school: 'Delhi Public School',
+      },
+    });
+  }
+
+  const hasSessions = await prisma.studySession.count({ where: { studentId: student.id } });
+  if (hasSessions === 0) {
+    const subject = await prisma.subject.findFirst({
+      where: { code: 'MATH', class: 8, board: { code: 'CBSE' } },
+    });
+    if (subject) {
+      for (let d = 0; d < 4; d++) {
+        const date = new Date();
+        date.setDate(date.getDate() - d);
+        await prisma.studySession.create({
+          data: {
+            studentId: student.id,
+            subjectId: subject.id,
+            durationMinutes: 45 + d * 10,
+            date,
+          },
+        });
+      }
+    }
+    await prisma.studyGoal.create({ data: { studentId: student.id, targetMinutesPerDay: 90 } });
+    await prisma.moodLog.create({
+      data: { studentId: student.id, date: new Date(), mood: 'HAPPY' },
+    });
+    await prisma.foodLog.create({
+      data: {
+        studentId: student.id,
+        date: new Date(),
+        mealType: 'BREAKFAST',
+        items: [{ name: 'Idli' }, { name: 'Sambar' }] as Prisma.InputJsonValue,
+        isJunkFood: false,
+      },
+    });
+  }
+
+  const hasExpense = await prisma.expense.count({ where: { familyId: family.id } });
+  if (hasExpense === 0) {
+    const category = await prisma.expenseCategory.findFirst({ where: { name: 'Education' } });
+    if (category) {
+      await prisma.expense.create({
+        data: {
+          familyId: family.id,
+          categoryId: category.id,
+          amount: 1500,
+          description: 'Textbooks',
+          date: new Date(),
+          loggedById: parent.id,
+        },
+      });
+    }
+  }
+
+  console.log('\nDemo accounts (password for both): ' + DEMO_PASSWORD);
+  console.log(`  Parent : ${DEMO_PARENT_EMAIL}`);
+  console.log(`  Student: ${DEMO_STUDENT_EMAIL}`);
+}
+
 async function main() {
   console.log('Seeding FamilyOS reference data...');
   await seedBoardsAndSubjects();
   await seedSampleQuestions();
   await seedCategories();
+  await seedDemo();
   console.log('Seed complete.');
 }
 
